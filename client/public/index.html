@@ -1,19 +1,32 @@
 <!doctype html>
 <html>
-<head>
-<meta charset="utf-8" />
-<title>cljupiter</title>
-<style>
-html,body,div#app {
-margin: 0;
-height: 100%;
-background: #0f0f23;
-color: #cccccc;
-}
-</style>
-</head>
-<body>
-<div id="app"></div>
-<script src="/js/main.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>exp</title>
+    <link rel="stylesheet"
+          data-name="vs/editor/editor.main"
+          href="/libs/monaco-editor/min/vs/editor/editor.main.css"/>
+    <style>
+      html,body,div#app {
+        margin: 0;
+        height: 100%;
+        background: #0f0f23;
+        color: #cccccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      var require = {
+        paths: {
+          vs: '/libs//monaco-editor/min/vs',
+        },
+      }
+    </script>
+    <script src="/libs/monaco-editor/min/vs/loader.js"></script>
+    <script src="/libs/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="/libs/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script src="/js/main.js"></script>
+  </body>
 </html>

@@ -1,5 +1,7 @@
 node_modules/
 public/js
+public/libs/*
+!public/libs/.gitkeep
 
 /target
 /checkouts

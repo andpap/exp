@@ -1,4 +1,6 @@
-(ns exp.db)
+(ns exp.db
+  (:require
+   [clojure.string :as str]))
 
 (def content-core-clj "(ns project1.core)
 
@@ -7,14 +9,20 @@
 * [TODO] task 1
 * [TODO] task 2
 ")
-(def content-foo-clj "(ns project1.utils.foo)
-  (defn func-from-foo []
-    (println \"hello from foo\"))
-")
-(def content-buzz-clj "(ns project2.utils.buzz)
-  (defn func-from-buzz []
-    (println \"hello from buzz\") )
-")
+(def content-foo-clj
+  (str/join "\n"
+            ["(ns testmodule1)"
+             ""
+             "(println \"hello world!\")"]))
+
+(def content-buzz-clj
+  (str/join "\n"
+            ["(ns testmodule2)"
+             ""
+             "(defn hello-world []"
+             "  (println \"hello\"))"
+             ""
+             "(hello-world)"]))
 
 (def default-db
   {:name "re-frame"

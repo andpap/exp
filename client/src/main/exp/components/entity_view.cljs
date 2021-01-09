@@ -1,6 +1,7 @@
 (ns exp.components.entity-view
   (:require
    [re-frame.core :as re-frame]
+   [reagent.core :as reagent]
    [exp.subs :as subs]
    [exp.events :as events]
    [clojure.string :as s]
@@ -8,15 +9,35 @@
    [reagent-material-ui.core.toolbar :refer [toolbar]]
    [reagent-material-ui.core.button-group :refer [button-group]]
    [reagent-material-ui.core.button :refer [button]]
-;   [monaco.core :as monaco]
-;   [monaco.build :as build]
-;   [monaco.js-interop :as j]
-;   [mocaco.api.editor :as monaco.editor]
-;   [monaco.api.keyboard :as monaco.keyboard]
-;   [monaco.api.languages :as monaco.languages]
   ))
 
 (declare view)
+
+
+;      const editor = monaco.editor.create(document.getElementById('editor'), {
+;        value: '',
+;        language: 'clojure',
+;      })  
+
+(defn monaco []
+  (let [editor (.. js/window -monaco -editor)
+        id (gensym "ed")]
+    (reagent/create-class
+     {:display-name "monaco"
+      
+      :component-did-mount
+      (fn [this]
+        (let [[value] (rest (reagent/argv this))              
+              element (. js/document getElementById id)
+              ed (.create editor element (clj->js {:value value :language "clojure"}))]))
+
+      :reagent-render
+      (fn []
+        [:div
+         {:id id
+          :style {
+          :height "100px"}}])
+      })))
 
 (defn my-toolbar [& children]
   (->> children
@@ -30,7 +51,7 @@
    [my-toolbar
     [button "run"]]
    [box
-     [:pre (:content entity)]]]
+     [monaco (:content entity)]]]
   )
 
 (defn render-text [entity]
@@ -44,6 +65,7 @@
      {:border-top 1}
      (render entity)
      ]))
+
 
 (defn render-org [entity]
   [box
