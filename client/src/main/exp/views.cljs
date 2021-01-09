@@ -42,7 +42,8 @@
 
 (defn workspace-panel []
   [box
-    {:display "flex"
+   {:display "flex"
+    :flex-grow 1
      :flex-direction "column"}
      [app-bar
        {:position "static"}
@@ -54,7 +55,8 @@
          "Editor"]]]
 
      [box
-      {:display "flex"       
+      {:display "flex"
+       :flex-grow 1
        :flex-direction "row"}
       
        [box
@@ -64,10 +66,11 @@
              
        [box
         {:flex 1
-         :border-top 1
-         :border-right 1
-         :border-bottom 1
-         :p 1}
+         :position "relative"         
+;         :border-top 1
+;         :border-right 1
+;         :border-bottom 1
+         :p 0}
         [entity-view-panel]]
       ]
      ]     

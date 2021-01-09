@@ -13,45 +13,62 @@
 
 (declare view)
 
-
-;      const editor = monaco.editor.create(document.getElementById('editor'), {
-;        value: '',
-;        language: 'clojure',
-;      })  
-
 (defn monaco []
   (let [editor (.. js/window -monaco -editor)
-        id (gensym "ed")]
+        id (gensym "ed")
+        *ed (reagent/atom nil)
+        update-layout (fn []
+                        (let [element (. js/document getElementById id)
+                              width (.. element -offsetWidth)
+                              height (.. element -offsetHeight)
+                              dimentions (clj->js {:width width :height (- height 0)})]
+                        (. ^js/monaco.editor @*ed layout dimentions)))]
     (reagent/create-class
      {:display-name "monaco"
+
+      :component-will-unmount
+      (fn [this]
+        (. js/window removeEventListener "resize" update-layout))
       
       :component-did-mount
       (fn [this]
         (let [[value] (rest (reagent/argv this))              
               element (. js/document getElementById id)
-              ed (.create editor element (clj->js {:value value :language "clojure"}))]))
+              options {:value value
+                       :fixedOverflowWidgets true
+                       ;:lineNumbers "off"
+                       :folding false
+                       :readOnly false
+                       :scrollBeyondLastLine false
+                       :roundedSelection false
+                       :language "clojure"}
+              ed (.create editor element (clj->js options))]
+          (reset! *ed ed)
+          (. js/window addEventListener "resize" update-layout)
+          (. js/window setTimeout update-layout)
+        ))
 
       :reagent-render
       (fn []
         [:div
          {:id id
-          :style {
-          :height "100px"}}])
+          :style {:position "absolute"
+                  :width "100%"
+                  :height "100%"}}])
       })))
 
 (defn my-toolbar [& children]
   (->> children
      (into [button-group
-            {:size "small"
+            {:size "small"                          
              :color "primary"
              :variant "contained"}])))
 
 (defn render-module [entity]
-  [box
-   [my-toolbar
-    [button "run"]]
-   [box
-     [monaco (:content entity)]]]
+  [:<>
+;   [my-toolbar
+;    [button "run"]]   
+     [monaco (:content entity)]]
   )
 
 (defn render-text [entity]
@@ -61,10 +78,8 @@
   (let [render (view entity)
         id (:id entity)]
     ^{:key id}
-    [box
-     {:border-top 1}
      (render entity)
-     ]))
+     ))
 
 
 (defn render-org [entity]
