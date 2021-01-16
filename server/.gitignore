@@ -20,5 +20,8 @@ pom.xml.asc
 
 *.*~
 
+.cpcache
+.rebel_readline_history
+
 .hgignore
 .hg/
