@@ -1,6 +1,6 @@
 (ns exp.views
   (:require
-   [re-frame.core :as re-frame]
+   [re-frame.core :refer [dispatch subscribe]]
    [exp.subs :as subs]
    [exp.events :as events]
    [clojure.string :as s]
@@ -16,7 +16,7 @@
 ;; home
 
 (defn home-panel []
-  (let [name (re-frame/subscribe [::subs/name])]
+  (let [name (subscribe [::subs/name])]
     [:div
      [:h1 (str "Hello from " @name ". This is the Home Page.")]
 
@@ -61,7 +61,8 @@
       
        [box
         {:p 1
-         :border 1}
+         :border 1
+         :min-width 200}
         [projects-panel]]
              
        [box
@@ -86,6 +87,16 @@
 (defn show-panel [panel-name]
   [panels panel-name])
 
+(defn on-socket-message [event]
+  (let [d (.. event -data)
+        d (js/JSON.parse d)
+        d (js->clj d :keywordize-keys true)]   
+    (dispatch [:server-action d])))
+
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [::subs/active-panel])]
-    [show-panel @active-panel]))
+  (let [active-panel (subscribe [::subs/active-panel])        
+        socket (js/WebSocket. "ws://localhost:8080/ws")]
+    (.addEventListener socket "message" on-socket-message)
+    (fn []
+      [show-panel @active-panel]
+    )))
