@@ -87,16 +87,9 @@
 (defn show-panel [panel-name]
   [panels panel-name])
 
-(defn on-socket-message [event]
-  (let [d (.. event -data)
-        d (js/JSON.parse d)
-        d (js->clj d :keywordize-keys true)]   
-    (dispatch [:server-action d])))
-
 (defn main-panel []
-  (let [active-panel (subscribe [::subs/active-panel])        
-        socket (js/WebSocket. "ws://localhost:8080/ws")]
-    (.addEventListener socket "message" on-socket-message)
+  (let [active-panel (subscribe [::subs/active-panel])]
+    (dispatch [:init-socket])
     (fn []
       [show-panel @active-panel]
     )))

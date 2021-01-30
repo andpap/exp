@@ -27,8 +27,8 @@
   [channel]
   (let [data (get-paths work-path)
         data (mapv (fn [v] {:name v :type :module}) data)
-        data (create-action :files-update data)
-        data (json/generate-string data)]
+        data (create-action :project data)
+        data (json/encode data)]
     (server/send! channel data)))
 
 (defn auto-send-updates
@@ -40,16 +40,41 @@
         (send-files-update channel)
         (recur)))))
 
+(defn ws-data->action [data]
+  (let [res (json/parse-string data true)]
+    (update res :type keyword)))
+
+(defmulti action-handler :type)
+
+(defmethod action-handler
+  :get-module
+  [{:keys [payload]}]
+  (let [path (str work-path payload)
+        file (clojure.java.io/file path)
+        file? (.isFile file)]
+    (when file?
+      (let [data (slurp path)
+            action (create-action
+                    :module
+                    {:name payload
+                     :type :module
+                     :content data})]
+        action))))
+
 (defn ws-handler [req]
   (server/with-channel req channel
     (let [*is-need-stop (atom false)]
       (auto-send-updates channel *is-need-stop))
-      (server/on-close   channel (fn [status]
-                                   (println "channel closed")))
-      (server/on-receive channel (fn [data]
-                                   (println ">>>" data)
-                                   (server/send! channel data)))))
-
+    (server/on-close channel
+                     (fn [status]
+                       (println "channel closed")))
+    (server/on-receive channel
+                       (fn [data]
+                         (when-some [resp (some-> data
+                                                 (ws-data->action)
+                                                 (action-handler)
+                                                 (json/encode))]                           
+                             (server/send! channel resp))))))
   
 
 (defn show-index-page [req]
@@ -75,8 +100,16 @@
   (start {:port 8080})
   (stop {})
   
-
+  (json/parse-string "{\"asd\":1}" true)
   (json/generate-string {:foo 1})
+
+  
+  (-> "."
+      (clojure.java.io/file)
+      (.isFile))
+  
+      (.exists (clojure.java.io/file "."))
+    
   
 
 
