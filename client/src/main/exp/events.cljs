@@ -23,7 +23,6 @@
                                     data (js->clj data :keywordize-keys true)
                                     type (:type data)
                                     payload (:payload data)]
-                                (js/console.log type)
                                 (dispatch [(keyword type) payload])))]
              (.addEventListener socket "message" on-message)
              socket))))
@@ -60,6 +59,19 @@
  (fn [cofx [_ v]]
    (js/console.log "send-module")))
 
+(reg-event-fx
+  ::send-code
+  (fn [cofx [_ v]]
+    (let [v {:type :code
+             :payload v}
+          v (clj->js v)]
+      (.send @*socket (js/JSON.stringify v)))))
+
+(reg-event-fx
+  :result
+  (fn [cofx [_ v]]
+    (js/console.log v)))
+
 (reg-event-db
  :project
  (fn [db [_ payload]]
@@ -68,7 +80,6 @@
                     (assoc-in [name :name] name)
                     (assoc-in [name :type] (keyword type))))
          entities (reduce func (:entities db) payload)]
-     (js/console.log (clj->js db))
      (assoc db :entities entities))))
 
 (reg-event-db

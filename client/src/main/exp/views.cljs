@@ -11,6 +11,7 @@
    [reagent-material-ui.core.box :refer [box]]
    [exp.components.projects-sidebar :refer [projects-panel]]
    [exp.components.entity-view :refer [entity-view-panel]]
+   [exp.components.terminal :as terminal-panel]
  ))
 
 ;; home
@@ -64,17 +65,20 @@
          :border 1
          :min-width 200}
         [projects-panel]]
-             
+
+      [box
+       {:flex 1
+        :display "flex"
+        :flex-direction "column"}  
        [box
         {:flex 1
          :position "relative"         
-;         :border-top 1
-;         :border-right 1
-;         :border-bottom 1
-         :p 0}
+        :p 0}
         [entity-view-panel]]
+        [terminal-panel/index]                       
+       ]                
       ]
-     ]     
+     ]
     )
 
 (defn- panels [panel-name]

@@ -5,9 +5,10 @@
             [compojure.core :refer :all ]
             [compojure.route :as rouite]
             [cheshire.core :as json]
+            [clojure.java.io :as io]
             [clojure.core.async :refer [go-loop timeout <!]]))
 
-(def work-path "/home/work/exp/client/src")
+(def work-path "/home/work/project1")
 
 (defonce *api-server (atom nil))
 
@@ -17,7 +18,8 @@
   (->> (file-seq (clojure.java.io/file dir))
        (map #(.getAbsolutePath %))
        (map #(subs % (count work-path)))
-       (filter #(s/ends-with? % "cljs"))))
+;       (filter #(s/ends-with? % "cljs"))
+       ))
 
 (defn create-action
   [type payload]
@@ -44,12 +46,19 @@
   (let [res (json/parse-string data true)]
     (update res :type keyword)))
 
+
+;(defn create-file [name]
+;  (spit (str work-path "/" name) ""))
+
+;(defn delete-file [name]
+;  (io/delete-file name))
+
 (defmulti action-handler :type)
 
 (defmethod action-handler
   :get-module
   [{:keys [payload]}]
-  (let [path (str work-path payload)
+  (let [path (str work-path payload) 
         file (clojure.java.io/file path)
         file? (.isFile file)]
     (when file?
@@ -59,12 +68,27 @@
                     {:name payload
                      :type :module
                      :content data})]
-        action))))
+        (json/encode action)))))
+
+(defmethod action-handler
+  :code
+  [{:keys [payload]}]
+  (let [ast (read-string payload)
+        _   (println ast)
+        result (binding [*ns* (find-ns 'exp.core)]
+                 (eval ast))]
+    (try
+      (json/encode (create-action :result result))
+      (catch Exception e
+        (json/encode "ok")))))
 
 (defn ws-handler [req]
   (server/with-channel req channel
     (let [*is-need-stop (atom false)]
       (auto-send-updates channel *is-need-stop))
+
+    (println "threadId>>>" (.getId (Thread/currentThread)))
+    
     (server/on-close channel
                      (fn [status]
                        (println "channel closed")))
@@ -72,9 +96,9 @@
                        (fn [data]
                          (when-some [resp (some-> data
                                                  (ws-data->action)
-                                                 (action-handler)
-                                                 (json/encode))]                           
-                             (server/send! channel resp))))))
+                                                 (action-handler))]
+                           (println "thread>>>>>>" (.getId (Thread/currentThread)))
+                           (server/send! channel resp))))))
   
 
 (defn show-index-page [req]
@@ -99,6 +123,10 @@
 (comment
   (start {:port 8080})
   (stop {})
+
+  (defn hello1 [] "opa")
+  (eval (read-string "(hello1)"))
+  
   
   (json/parse-string "{\"asd\":1}" true)
   (json/generate-string {:foo 1})
