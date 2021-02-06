@@ -15,11 +15,14 @@
 (def interval 10000)
 
 (defn get-paths [dir]
-  (->> (file-seq (clojure.java.io/file dir))
-       (map #(.getAbsolutePath %))
-       (map #(subs % (count work-path)))
-;       (filter #(s/ends-with? % "cljs"))
-       ))
+  (for [file (file-seq (io/file dir))
+        :let [path    (.getAbsolutePath file)
+              path    (subs path (count work-path))
+              version (.lastModified file)]
+        :when (s/ends-with? path ".clj")]
+    {:version version
+     :type    :module
+     :name    path}))
 
 (defn create-action
   [type payload]
@@ -28,7 +31,7 @@
 (defn send-files-update
   [channel]
   (let [data (get-paths work-path)
-        data (mapv (fn [v] {:name v :type :module}) data)
+;        data (mapv (fn [v] {:name v :type :module}) data)
         data (create-action :project data)
         data (json/encode data)]
     (server/send! channel data)))
@@ -76,7 +79,11 @@
   (let [ast (read-string payload)
         _   (println ast)
         result (binding [*ns* (find-ns 'exp.core)]
-                 (eval ast))]
+                 (try
+                   (eval ast)
+                   (catch Exception e
+                     (.getMessage (clojure.stacktrace/root-cause e))))
+                 )]
     (try
       (json/encode (create-action :result result))
       (catch Exception e
@@ -86,8 +93,6 @@
   (server/with-channel req channel
     (let [*is-need-stop (atom false)]
       (auto-send-updates channel *is-need-stop))
-
-    (println "threadId>>>" (.getId (Thread/currentThread)))
     
     (server/on-close channel
                      (fn [status]
@@ -97,12 +102,11 @@
                          (when-some [resp (some-> data
                                                  (ws-data->action)
                                                  (action-handler))]
-                           (println "thread>>>>>>" (.getId (Thread/currentThread)))
                            (server/send! channel resp))))))
   
 
 (defn show-index-page [req]
-  "hello112!!!")
+  "hello")
 
 
 (defroutes app-routes

@@ -6,6 +6,7 @@
 (s/def ::id string?)
 (s/def ::type keyword?)
 (s/def ::content string?)
+(s/def ::version integer?)
 (s/def ::entity
   (s/keys :req-un [::id ::type ::content]))
 (s/def ::entities

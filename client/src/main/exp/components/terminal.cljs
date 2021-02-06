@@ -35,13 +35,16 @@
       [box
         {:display "flex"
          :flex-direction "column"}
-       [:select
-        {:on-change #(swap! *state assoc :code (get-code-from-template %))}
-        (->> templates
-             (map :name)
-             (map (fn [name]
-                    ^{:key name}
-                    [:option name])))]
+
+;       [:select
+;        {:on-change #(swap! *state assoc :code (get-code-from-template %))}
+;        (->> templates
+;             (map :name)
+;             (map (fn [name]
+;                    ^{:key name}
+                                        ;                    [:option name])))]
+;       [:textarea]
+       
        [box
         {:display "flex"}
         [:textarea

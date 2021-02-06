@@ -42,6 +42,7 @@
 (reg-event-fx
  ::set-active-entity-name
  (fn [cofx [_ v]]
+   (js/console.log ":set-active-entity-name:" v)
    {:db (assoc (:db cofx) :active-entity-name v)
     :fx [[:dispatch [::get-module v]]]}))
 
@@ -67,10 +68,11 @@
           v (clj->js v)]
       (.send @*socket (js/JSON.stringify v)))))
 
-(reg-event-fx
+(reg-event-db
   :result
-  (fn [cofx [_ v]]
-    (js/console.log v)))
+  (fn [db [_ payload]]
+    (js/console.log "result>>>>" payload)
+    (assoc db :result payload)))
 
 (reg-event-db
  :project
@@ -85,4 +87,6 @@
 (reg-event-db
  :module
  (fn [db [_ payload]]
-   (assoc-in db [:entities (:name payload)] payload)))
+   (let [p (assoc payload :type (keyword (:type payload)))]
+     (assoc-in db [:entities (:name payload)] p))   
+   ))

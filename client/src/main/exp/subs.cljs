@@ -8,6 +8,11 @@
    (:name db)))
 
 (re-frame/reg-sub
+ ::result
+ (fn [db]
+   (:result db)))
+
+(re-frame/reg-sub
  ::entities
  (fn [db]
    (:entities db)))

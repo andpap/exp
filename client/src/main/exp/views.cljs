@@ -75,7 +75,7 @@
          :position "relative"         
         :p 0}
         [entity-view-panel]]
-        [terminal-panel/index]                       
+        [terminal-panel/index]
        ]                
       ]
      ]
